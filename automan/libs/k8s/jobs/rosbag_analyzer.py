@@ -6,7 +6,8 @@ from projects.storages.aws_s3 import AwsS3Client
 
 class RosbagAnalyzer(BaseJob):
     IMAGE_NAME = 'automan-rosbag-analyzer'
-    MEMORY = '512Mi'
+    IMAGE_REPO = '869505890234.dkr.ecr.ap-northeast-1.amazonaws.com/automan-rosbag-analyzer:latest'
+    MEMORY = '5120Mi'
 
     # TODO: automan_server_info
     def __init__(self, storage_type, storage_config, automan_config, k8s_config_path=None, ros_distrib='kinetic'):
@@ -24,6 +25,7 @@ class RosbagAnalyzer(BaseJob):
                  'base_dir': storage_config['base_dir'],
                  'target_url': AwsS3Client().get_s3_down_url(storage_config['bucket'], storage_config['path'])},
                 separators=(',', ':'))
+            print(self.storage_info)
             self.automan_info = json.dumps(automan_config, separators=(',', ':'))
         else:
             raise NotImplementedError  # FIXME
@@ -76,7 +78,7 @@ class RosbagAnalyzer(BaseJob):
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_NAME,
+                    image=self.IMAGE_REPO,
                     image_pull_policy='IfNotPresent',
                     name=self.IMAGE_NAME,
                     volume_mounts=[client.models.V1VolumeMount(mount_path=self.mount_path, name=self.volume_name)],
@@ -88,7 +90,7 @@ class RosbagAnalyzer(BaseJob):
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_NAME,
+                    image=self.IMAGE_REPO,
                     image_pull_policy='IfNotPresent',
                     name=self.IMAGE_NAME,
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),

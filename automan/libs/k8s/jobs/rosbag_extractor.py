@@ -6,7 +6,8 @@ from projects.storages.aws_s3 import AwsS3Client
 
 class RosbagExtractor(BaseJob):
     IMAGE_NAME = 'automan-rosbag-extractor'
-    MEMORY = '512Mi'
+    IMAGE_REPO = '869505890234.dkr.ecr.ap-northeast-1.amazonaws.com/automan-rosbag-extractor:latest'
+    MEMORY = '5120Mi'
 
     # TODO: automan_server_info
     def __init__(
@@ -46,7 +47,7 @@ class RosbagExtractor(BaseJob):
             spec=client.models.V1JobSpec(
                 # ttlSecondsAfterFinished = 45 Day
                 ttl_seconds_after_finished=3888000,
-                active_deadline_seconds=600,
+                active_deadline_seconds=10800,
                 completions=1,
                 parallelism=1,
                 # TODO: backoffLimit
@@ -86,7 +87,7 @@ class RosbagExtractor(BaseJob):
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_NAME,
+                    image=self.IMAGE_REPO,
                     image_pull_policy='IfNotPresent',
                     name=self.IMAGE_NAME,
                     # env=[access_key_env, secret_key_env],
@@ -99,7 +100,7 @@ class RosbagExtractor(BaseJob):
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_NAME,
+                    image=self.IMAGE_REPO,
                     image_pull_policy='IfNotPresent',
                     name=self.IMAGE_NAME,
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),

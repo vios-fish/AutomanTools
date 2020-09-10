@@ -38,7 +38,7 @@ RUN yarn install
 
 # setup frontend environment
 COPY front/ $APP_PATH/front/
-RUN yarn build
+RUN yarn develop
 
 COPY automan/ $APP_PATH/automan/
 COPY bin/ $APP_PATH/bin/
