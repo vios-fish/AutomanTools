@@ -19,6 +19,7 @@ from projects.storages.storage_manager import StorageManager
 from api.settings import PER_PAGE
 from api.common import validation_check
 from accounts.account_manager import AccountManager
+from automan_website import settings
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -121,6 +122,8 @@ class JobSerializer(serializers.ModelSerializer):
             'storage_config': storage_config,
             'automan_config': automan_config,
             'archive_config': archive_config,
+            'docker_registry_host': settings.JOB_DOCKER_REGISTRY_HOST,
+            'image_config': settings.JOB['ARCHIVER'],
         }
         job_config_json = json.dumps(job_config)
         new_job = Job(
@@ -173,7 +176,9 @@ class JobSerializer(serializers.ModelSerializer):
             'storage_type': storage_manager.storage['storage_type'],
             'storage_config': storage_config,
             'automan_config': automan_config,
-            'raw_data_config': raw_data_config
+            'raw_data_config': raw_data_config,
+            'docker_registry_host': settings.JOB_DOCKER_REGISTRY_HOST,
+            'image_config': settings.JOB['EXTRACTOR'],
         }
 
         job_config_json = json.dumps(job_config)
@@ -208,7 +213,9 @@ class JobSerializer(serializers.ModelSerializer):
         job_config = {
             'storage_type': storage_manager.storage['storage_type'],
             'storage_config': storage_config,
-            'automan_config': automan_config
+            'automan_config': automan_config,
+            'docker_registry_host': settings.JOB_DOCKER_REGISTRY_HOST,
+            'image_config': settings.JOB['ANALYZER'],
         }
         job_config_json = json.dumps(job_config)
         new_job = Job(

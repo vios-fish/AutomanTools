@@ -5,15 +5,13 @@ from projects.storages.aws_s3 import AwsS3Client
 
 
 class AnnotationArchiver(BaseJob):
-    IMAGE_NAME = 'automan-annotation-archiver'
-    IMAGE_REPO = '869505890234.dkr.ecr.ap-northeast-1.amazonaws.com/automan-annotation-archiver:latest'
-    MEMORY = '1024Mi'
-
     # TODO: automan_server_info
     def __init__(
             self, storage_type, storage_config, automan_config,
-            archive_config, k8s_config_path=None, ros_distrib='kinetic'):
-        super(AnnotationArchiver, self).__init__(k8s_config_path)
+            archive_config, docker_registry_host, image_config,
+            k8s_config_path=None, ros_distrib='kinetic'):
+        super(AnnotationArchiver, self).__init__(k8s_config_path, docker_registry_host, image_config)
+
         self.ros_distrib = ros_distrib
         self.storage_type = storage_type
         if storage_type == 'LOCAL_NFS':
@@ -76,15 +74,15 @@ class AnnotationArchiver(BaseJob):
                 '--storage_info', self.storage_info,
                 '--automan_info', self.automan_info,
                 '--archive_info', self.archive_info]
-        system_usage = {'memory': self.MEMORY}
+        system_usage = {'memory': self._memory}
         if self.storage_type == 'LOCAL_NFS':
             containers = [
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_REPO,
+                    image=self._repository_name,
                     image_pull_policy='IfNotPresent',
-                    name=self.IMAGE_NAME,
+                    name=self._image_name,
                     # env=[access_key_env, secret_key_env],
                     volume_mounts=[client.models.V1VolumeMount(mount_path=self.mount_path, name=self.volume_name)],
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),
@@ -95,9 +93,9 @@ class AnnotationArchiver(BaseJob):
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_REPO,
+                    image=self._repository_name,
                     image_pull_policy='IfNotPresent',
-                    name=self.IMAGE_NAME,
+                    name=self._image_name,
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),
                 )
             ]

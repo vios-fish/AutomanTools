@@ -5,13 +5,10 @@ from projects.storages.aws_s3 import AwsS3Client
 
 
 class RosbagAnalyzer(BaseJob):
-    IMAGE_NAME = 'automan-rosbag-analyzer'
-    IMAGE_REPO = '869505890234.dkr.ecr.ap-northeast-1.amazonaws.com/automan-rosbag-analyzer:latest'
-    MEMORY = '5120Mi'
-
     # TODO: automan_server_info
-    def __init__(self, storage_type, storage_config, automan_config, k8s_config_path=None, ros_distrib='kinetic'):
-        super(RosbagAnalyzer, self).__init__(k8s_config_path)
+    def __init__(self, storage_type, storage_config, automan_config, docker_registry_host, image_config,
+                 k8s_config_path=None, ros_distrib='kinetic'):
+        super(RosbagAnalyzer, self).__init__(k8s_config_path, docker_registry_host, image_config)
         self.storage_type = storage_type
         if storage_type == 'LOCAL_NFS':
             self.mount_path = storage_config['mount_path']
@@ -71,16 +68,16 @@ class RosbagAnalyzer(BaseJob):
         args = ['pipenv', 'run', 'python', '/app/bin/rosbag_analyzer.py',
                 '--storage_type', self.storage_type, '--storage_info',
                 self.storage_info, '--automan_info', self.automan_info]
-        system_usage = {'memory': self.MEMORY}
+        system_usage = {'memory': self._memory}
         containers = []
         if self.storage_type == 'LOCAL_NFS':
             containers = [
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_REPO,
+                    image=self._repository_name,
                     image_pull_policy='IfNotPresent',
-                    name=self.IMAGE_NAME,
+                    name=self._image_name,
                     volume_mounts=[client.models.V1VolumeMount(mount_path=self.mount_path, name=self.volume_name)],
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),
                 )
@@ -90,9 +87,9 @@ class RosbagAnalyzer(BaseJob):
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_REPO,
+                    image=self._repository_name,
                     image_pull_policy='IfNotPresent',
-                    name=self.IMAGE_NAME,
+                    name=self._image_name,
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),
                 )
             ]
