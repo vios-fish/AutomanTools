@@ -6,7 +6,7 @@ from utility.service_log import ServiceLog
 
 
 class BaseJob(object):
-    def __init__(self, k8s_config_path=None):
+    def __init__(self, k8s_config_path=None, docker_registry_host=None, image_config=None):
         if not k8s_config_path:
             config_path = os.path.join(os.environ['HOME'], '.kube/config')
         try:
@@ -15,6 +15,16 @@ class BaseJob(object):
             config.load_incluster_config()  # in kubernetes
         self.batch_client = client.BatchV1Api()
         self.core_client = client.CoreV1Api()
+
+        self._image_name = image_config['IMAGE_NAME']
+        self._image_tag = image_config['IMAGE_TAG']
+        self._memory = image_config['MEMORY']
+
+        self._docker_registry_host = docker_registry_host
+        if self._docker_registry_host is not None:
+            self._repository_name = self._docker_registry_host + '/' + self._image_name + ':' + self._image_tag
+        else:
+            self._repository_name = self._image_name + ':' + self._image_tag
 
     def create(self):
         raise NotImplementedError

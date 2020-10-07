@@ -5,15 +5,11 @@ from projects.storages.aws_s3 import AwsS3Client
 
 
 class RosbagExtractor(BaseJob):
-    IMAGE_NAME = 'automan-rosbag-extractor'
-    IMAGE_REPO = '869505890234.dkr.ecr.ap-northeast-1.amazonaws.com/automan-rosbag-extractor:latest'
-    MEMORY = '5120Mi'
-
     # TODO: automan_server_info
     def __init__(
             self, storage_type, storage_config, automan_config,
-            raw_data_config, k8s_config_path=None, ros_distrib='kinetic'):
-        super(RosbagExtractor, self).__init__(k8s_config_path)
+            raw_data_config, docker_registry_host, image_config, k8s_config_path=None, ros_distrib='kinetic'):
+        super(RosbagExtractor, self).__init__(k8s_config_path, docker_registry_host, image_config)
         self.ros_distrib = ros_distrib
         self.storage_type = storage_type
         if storage_type == 'LOCAL_NFS':
@@ -81,15 +77,15 @@ class RosbagExtractor(BaseJob):
                 '--storage_info', self.storage_info,
                 '--automan_info', self.automan_info,
                 '--raw_data_info', self.raw_data_info]
-        system_usage = {'memory': self.MEMORY}
+        system_usage = {'memory': self._memory}
         if self.storage_type == 'LOCAL_NFS':
             containers = [
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_REPO,
+                    image=self._repository_name,
                     image_pull_policy='IfNotPresent',
-                    name=self.IMAGE_NAME,
+                    name=self._image_name,
                     # env=[access_key_env, secret_key_env],
                     volume_mounts=[client.models.V1VolumeMount(mount_path=self.mount_path, name=self.volume_name)],
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),
@@ -100,9 +96,9 @@ class RosbagExtractor(BaseJob):
                 client.models.V1Container(
                     command=command,
                     args=args,
-                    image=self.IMAGE_REPO,
+                    image=self._repository_name,
                     image_pull_policy='IfNotPresent',
-                    name=self.IMAGE_NAME,
+                    name=self._image_name,
                     resources=client.models.V1ResourceRequirements(limits=system_usage, requests=system_usage),
                 )
             ]
