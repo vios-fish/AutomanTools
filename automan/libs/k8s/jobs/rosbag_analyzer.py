@@ -70,7 +70,7 @@ class RosbagAnalyzer(BaseJob):
 
     def __get_containers(self):
         command = ["/app/bin/docker-entrypoint.bash"]
-        args = ['pipenv', 'run', 'python', '/app/bin/rosbag_analyzer.py',
+        args = ['python', '/app/bin/rosbag_analyzer.py',
                 '--storage_type', self.storage_type, '--storage_info',
                 self.storage_info, '--automan_info', self.automan_info]
         system_usage = {'memory': self.MEMORY}

@@ -73,7 +73,7 @@ class AnnotationArchiver(BaseJob):
 
     def __get_containers(self):
         command = ["/app/bin/docker-entrypoint.bash"]
-        args = ['pipenv', 'run', 'python', '/app/bin/automan_archiver.py',
+        args = ['python', '/app/bin/automan_archiver.py',
                 '--storage_type', self.storage_type,
                 '--storage_info', self.storage_info,
                 '--automan_info', self.automan_info,
